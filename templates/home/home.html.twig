@@ -1,0 +1,425 @@
+{# {% extends 'base.html.twig' %}
+
+{% block title %}Welcome to Our Cafe{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body.home-page {
+            background-color: #001f3f;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            text-align: center;
+        }
+        .top-actions {
+            position: absolute;
+            top: 20px;
+            left: 900px;
+            display: flex;
+            align-items: center;
+        }
+        .top-actions a {
+            color: #007bff;
+            font-size: 1.5em;
+            margin-left: 15px;
+            text-decoration: none;
+        }
+        .welcome-section {
+            text-align: center;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .menu-category {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .menu-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .menu-item {
+            flex: 0 0 calc(50% - 10px);
+            max-width: 300px;
+            padding: 15px;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .menu-item:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .category-title {
+            background-color: #1A4870;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .quantity-controls button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .quantity-controls input {
+            width: 40px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .our-menu-title {
+            text-align: center;
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+        .our-menu-title::after {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 3px;
+            background-color: #007bff;
+            margin: 10px auto;
+        }
+        .admin-button {
+            background-color: #1A4870;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .admin-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<body class="home-page">
+    <div class="container">
+        <div class="top-actions">
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_menu') }}" class="admin-button">Manage Menus</a>
+            {% endif %}
+            {% if app.user %}
+                <a href="{{ path('app_logout') }}" title="Sign Out"><i class="fas fa-sign-out-alt"></i></a>
+            {% else %}
+                <a href="{{ path('app_login') }}" title="Sign In"><i class="fas fa-sign-in-alt"></i></a>
+                <a href="{{ path('app_register') }}" title="Register"><i class="fas fa-user-plus"></i></a>
+            {% endif %}
+            <a href="{{ path('cart') }}" class="admin-button"><i class="fas fa-shopping-cart"></i> Cart</a>
+        </div>
+
+        <div class="welcome-section">
+            <h1>Welcome to Our Cafe</h1>
+            {% if app.user %}
+                <p>Hello, <strong>{{ app.user.userIdentifier }}</strong>! We're glad to see you here.</p>
+            {% else %}
+                <p>To access the site, please sign in. If you don't have an account, please register.</p>
+            {% endif %}
+        </div>
+
+        <h2 class="our-menu-title">Our Menus</h2>
+        
+       
+   {% for menu in menus %}
+    <div class="menu-category">
+        <h3 class="category-title">{{ menu.name }}</h3>
+        <div class="menu-items">
+            {% for item in menu.items %}
+                <div class="menu-item">
+                    <h4><a href="{{ path('item_detail', {'id': item.id}) }}">{{ item.name }}</a></h4>
+                    <p>{{ item.description }}</p>
+                    <p class="text-primary fw-bold">Price: ${{ item.price|number_format(2) }}</p>
+                   <div class="quantity-controls">
+    <button class="decrease" onclick="updateQuantity('{{ item.id }}', -1)">-</button>
+    <input type="number" id="quantity-{{ item.id }}" value="{{ cartItems[item.id].quantity|default(0) }}" min="0" readonly>
+    <button class="increase" onclick="updateQuantity('{{ item.id }}', 1)">+</button>
+</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <p class="alert alert-info">No menus available at the moment.</p>
+{% endfor %}
+    </div>
+
+    <script>
+        function updateQuantity(itemId, change) {
+            const quantityInput = document.getElementById('quantity-' + itemId);
+            let currentQuantity = parseInt(quantityInput.value) || 0;
+            currentQuantity += change;
+            if (currentQuantity < 0) currentQuantity = 0; 
+            quantityInput.value = currentQuantity;
+
+            // ارسال درخواست AJAX برای به‌روزرسانی سبد خرید
+            fetch('{{ path('update_cart') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId: itemId,
+                    quantity: currentQuantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Cart updated:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+{% endblock %} #}
+{# سسسسسسسسسسسسسسسسسسسسسسسسسسسسسسسسس #}
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'Welcome to Our Cafe'|trans }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+     <style>
+        body.home-page {
+            background-color: #001f3f;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            text-align: center;
+        }
+        .top-actions {
+            position: absolute;
+            top: 20px;
+            left: 900px;
+            display: flex;
+            align-items: center;
+        }
+        .top-actions a {
+            color: #007bff;
+            font-size: 1.5em;
+            margin-left: 15px;
+            text-decoration: none;
+        }
+        .welcome-section {
+            text-align: center;
+            margin: 30px auto;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .menu-category {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .menu-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .menu-item {
+            flex: 0 0 calc(50% - 10px);
+            max-width: 300px;
+            padding: 15px;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .menu-item:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .category-title {
+            background-color: #1A4870;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .quantity-controls button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .quantity-controls input {
+            width: 40px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .our-menu-title {
+            text-align: center;
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+        .our-menu-title::after {
+            content: "";
+            display: block;
+            width: 100px;
+            height: 3px;
+            background-color: #007bff;
+            margin: 10px auto;
+        }
+        .admin-button {
+            background-color: #1A4870;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .admin-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<body class="home-page">
+    <div class="container">
+        <div class="top-actions">
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_menu') }}" class="admin-button">{{ 'Manage Menus'|trans }}</a>
+            {% endif %}
+            {% if app.user %}
+                <a href="{{ path('app_logout') }}" title="{{ 'Sign Out'|trans }}"><i class="fas fa-sign-out-alt"></i></a>
+            {% else %}
+                <a href="{{ path('app_login') }}" title="{{ 'Sign In'|trans }}"><i class="fas fa-sign-in-alt"></i></a>
+                <a href="{{ path('app_register') }}" title="{{ 'Register'|trans }}"><i class="fas fa-user-plus"></i></a>
+            {% endif %}
+            <a href="{{ path('cart') }}" class="admin-button"><i class="fas fa-shopping-cart"></i> {{ 'Cart'|trans }}</a>
+
+                <select onchange="window.location.href=this.value">
+                    <option value="{{ path('app_home', {'_locale': 'fa'}) }}" {% if app.request.locale == 'fa' %}selected{% endif %}>فارسی</option>
+                    <option value="{{ path('app_home', {'_locale': 'en'}) }}" {% if app.request.locale == 'en' %}selected{% endif %}>English</option>
+                </select>
+        </div>
+
+        <div class="welcome-section">
+            <h1>{{ 'Welcome to Our Cafe'|trans }}</h1>
+            {% if app.user %}
+                <p>{{ 'Hello'|trans }}, <strong>{{ app.user.userIdentifier }}</strong>! {{ 'We\'re glad to see you here.'|trans }}</p>
+            {% else %}
+                <p>{{ 'To access the site, please sign in. If you don\'t have an account, please register.'|trans }}</p>
+            {% endif %}
+        </div>
+
+        <h2 class="our-menu-title">{{ 'Our Menus'|trans }}</h2>
+        
+       
+   {% for menu in menus %}
+    <div class="menu-category">
+        <h3 class="category-title">{{ menu.name }}</h3>
+        <div class="menu-items">
+            {% for item in menu.items %}
+                <div class="menu-item">
+                    <h4><a href="{{ path('item_detail', {'id': item.id}) }}">{{ item.name }}</a></h4>
+                    <p>{{ item.description }}</p>
+                    <p class="text-primary fw-bold">{{ 'Price'|trans }}: ${{ item.price|number_format(2) }}</p>
+                   <div class="quantity-controls">
+    <button class="decrease" onclick="updateQuantity('{{ item.id }}', -1)">-</button>
+    <input type="number" id="quantity-{{ item.id }}" value="{{ cartItems[item.id].quantity|default(0) }}" min="0" readonly>
+    <button class="increase" onclick="updateQuantity('{{ item.id }}', 1)">+</button>
+</div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <p class="alert alert-info">{{ 'No menus available at the moment.'|trans }}</p>
+{% endfor %}
+    </div>
+
+    <script>
+        function updateQuantity(itemId, change) {
+            const quantityInput = document.getElementById('quantity-' + itemId);
+            let currentQuantity = parseInt(quantityInput.value) || 0;
+            currentQuantity += change;
+            if (currentQuantity < 0) currentQuantity = 0; 
+            quantityInput.value = currentQuantity;
+
+            fetch('{{ path('update_cart') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId: itemId,
+                    quantity: currentQuantity
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('{{ 'Cart updated'|trans }}:', data);
+            })
+            .catch((error) => {
+                console.error('{{ 'Error'|trans }}:', error);
+            });
+        }
+    </script>
+</body>
+{% endblock %}

@@ -3,3 +3,48 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+item_detail:
+    path: /item/{id}
+    controller: App\Controller\ItemController::detail
+
+add_comment:
+    path: /item/{itemId}/comment
+    controller: App\Controller\CommentController::addComment
+    methods: [POST]
+
+submit_order:
+    path: /submit-order
+    controller: App\Controller\CartController::submitOrder
+
+cart:
+    path: /cart
+    controller: App\Controller\CartController::showCart
+
+update_cart:
+    path: /update-cart
+    controller: App\Controller\CartController::updateCart
+    methods: [POST]
+
+homepage:
+    path: /{_locale}
+    controller: App\Controller\HomeController::index
+    requirements:
+        _locale: en|fa
+
+admin_orders:
+    path: /admin/orders
+    controller: App\Controller\AdminMenuController::adminOrders
+
+admin_order_details:
+    path: /admin/order/{id}
+    controller: App\Controller\AdminMenuController::orderDetails
+    methods: [GET]
+
+admin_analytics:
+    path: /admin/analytics
+    controller: App\Controller\AnalyticController::showAnalytics
+
+admin_analytics_report:
+    path: /admin/analytics/report
+    controller: App\Controller\AnalyticController::showAnalyticsReport

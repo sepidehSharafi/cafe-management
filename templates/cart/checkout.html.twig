@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body {
+            background-color: #E3FEF7;
+            color: #003C43;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #135D66;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #E3FEF7;
+            margin-bottom: 20px;
+        }
+        .cart-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #77B0AA;
+            border-radius: 10px;
+            background-color: #E3FEF7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total {
+            font-weight: bold;
+            margin-top: 20px;
+            color: #E3FEF7;
+        }
+        .checkout-button {
+            background-color: #77B0AA;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+        .checkout-button:hover {
+            background-color: #694F8E;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #77B0AA;
+        }
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #77B0AA;
+            border-radius: 5px;
+            background-color: #E3FEF7;
+            color: #003C43;
+        }
+        .error-message {
+            color: #FF4136;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .loading {
+            display: none;
+            color: #E3FEF7;
+            margin-top: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Checkout</h1>
+    
+    {% for item in cartItems %}
+        <div class="cart-item">
+            <div>
+                {{ item.menuItem.name }} - تعداد: {{ item.quantity }} - Price: ${{ (item.quantity * item.menuItem.price)|number_format(2) }}
+            </div>
+        </div>
+    {% endfor %}
+    
+    <div class="total">
+        Total ${{ total|number_format(2) }}
+    </div>
+    
+    {{ form_start(form, {'action': path('submit_order'), 'method': 'POST', 'attr': {'id': 'checkout-form'}}) }}
+    {% for child in form.children %}
+        <div class="form-group">
+            {{ form_label(child, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(child, {'attr': {'class': 'form-control'}}) }}
+            {# {{ form_errors(child, {'attr': {'class': 'error-message'}}) }} #}
+        </div>
+    {% endfor %}
+    <button type="submit" class="checkout-button">Submit Order</button>
+    <div class="loading">loading...</div>
+    {{ form_end(form) }}
+</div>
+
+<script>
+document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const loadingMessage = form.querySelector('.loading');
+
+    submitButton.disabled = true;
+    loadingMessage.style.display = 'block';
+
+    fetch('{{ path('submit_order') }}', {
+        method: 'POST',
+        body: new FormData(form),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server responded with status ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            window.location.href = '{{ path('order_confirmation', {'id': 'ORDER_ID'}) }}'.replace('ORDER_ID', data.orderId);
+        } else {
+            alert('error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('error:', error);
+        alert('There was an error. Please try again');
+    })
+    .finally(() => {
+        submitButton.disabled = false;
+        loadingMessage.style.display = 'none';
+    });
+});
+</script>
+{% endblock %}

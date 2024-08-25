@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analytics{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Analytics</h1>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+{{ form_start(form, {'action': path('admin_analytics')}) }}
+
+    {{ form_end(form) }}
+</div>
+{% endblock %}

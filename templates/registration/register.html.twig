@@ -1,0 +1,113 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body.register-page {
+            background: linear-gradient(120deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+        }
+        .register-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(252, 182, 159, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 450px;
+            width: 100%;
+        }
+        .register-container h1 {
+            color: #e17055;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            color: #e17055;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .form-control {
+            border-radius: 20px;
+            border: 1px solid #fab1a0;
+            padding: 12px 15px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            border-color: #e17055;
+            box-shadow: 0 0 0 0.2rem rgba(225, 112, 85, 0.25);
+        }
+        .btn-register {
+            background-color: #e17055;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            width: 100%;
+            cursor: pointer;
+        }
+        .btn-register:hover {
+            background-color: #d63031;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .agree-terms {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .agree-terms input {
+            margin-right: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<body class="register-page">
+    <div class="register-container">
+        <h1>Register</h1>
+
+        {{ form_errors(registrationForm) }}
+
+        {{ form_start(registrationForm) }}
+            <div class="form-group">
+                {{ form_label(registrationForm.username) }}
+                {{ form_widget(registrationForm.username, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(registrationForm.email) }}
+                {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            
+            <div class="form-group">
+                {{ form_label(registrationForm.plainPassword, 'Password') }}
+                {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            
+            <div class="agree-terms">
+                {{ form_widget(registrationForm.agreeTerms) }}
+                {{ form_label(registrationForm.agreeTerms) }}
+            </div>
+
+            <button type="submit" class="btn btn-register">Register</button>
+        {{ form_end(registrationForm) }}
+    </div>
+</body>
+{% endblock %}

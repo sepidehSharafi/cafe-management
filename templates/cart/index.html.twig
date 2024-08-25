@@ -1,0 +1,168 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body {
+            background-color: #F4A261; 
+            color: #6F4E37; 
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ECB176; 
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(105, 79, 142, 0.2);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #6F4E37;
+            margin-bottom: 20px;
+        }
+        .cart-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #EF9C66; 
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+        }
+        .quantity-controls button {
+            background-color: #6F4E37; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .quantity-controls input {
+            width: 40px;
+            text-align: center;
+            border: 1px solid #B692C2;
+            border-radius: 5px;
+        }
+        .total {
+            font-weight: bold;
+            margin-top: 20px;
+            color: #ECB176; 
+        }
+        .checkout-button {
+            background-color: #6F4E37; 
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .checkout-button:hover {
+            background-color: #694F8E; 
+        }
+        .home-button {
+            background-color: #6F4E37;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .home-button:hover {
+            background-color: #694F8E; 
+        }
+        .summary-box {
+            background-color: #ffffff; 
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .summary-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<body style="background-color: #FED8B1;">
+
+<div class="container">
+    <h1>Your Shopping Cart</h1>
+    
+    {% if cartItems is not empty %}
+        {% for item in cartItems %}
+            <div class="cart-item">
+                <div>
+                    <h4>{{ item.menuItem.name }}</h4>
+                    <p>Price: ${{ item.menuItem.price|number_format(2) }}</p>
+                </div>
+                <div class="quantity-controls">
+                    <button onclick="updateQuantity('{{ item.menuItem.id }}', -1)">-</button>
+                    <input type="number" id="quantity-{{ item.menuItem.id }}" value="{{ item.quantity }}" min="0" readonly>
+                    <button onclick="updateQuantity('{{ item.menuItem.id }}', 1)">+</button>
+                </div>
+            </div>
+        {% endfor %}
+        
+        <div class="summary-box">
+            <div class="summary-label">Total Order Amount:</div>
+            <div class="total">
+                ${{ total|number_format(2) }}
+            </div>
+        </div>
+
+        <a href="{{ path('checkout') }}" class="checkout-button">Proceed to Checkout</a>
+        <button class="home-button" onclick="location.href='{{ path('app_home') }}'">Back to Home</button>
+    {% else %}
+        <p>Your cart is empty.</p>
+    {% endif %}
+</div>
+
+<script>
+    function updateQuantity(itemId, change) {
+        const quantityInput = document.getElementById('quantity-' + itemId);
+        let currentQuantity = parseInt(quantityInput.value) || 0;
+        currentQuantity += change;
+        if (currentQuantity < 0) currentQuantity = 0; 
+        quantityInput.value = currentQuantity;
+
+        fetch('{{ path('update_cart') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                itemId: itemId,
+                quantity: currentQuantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Cart updated:', data);
+            location.reload();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+</script>
+</body>
+{% endblock %}
